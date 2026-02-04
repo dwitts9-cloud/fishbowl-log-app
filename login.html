@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Wholesale - Login</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <!-- Performance optimizations -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="logo_rw.png" as="image">
+    
+    <!-- DNS prefetch for external APIs -->
+    <link rel="dns-prefetch" href="//ssapi.shipstation.com">
+    
+    <!-- Resource hints -->
+    <link rel="preconnect" href="https://ssapi.shipstation.com">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .dashboard-logo {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0px;
+            margin-top: 0px;
+            padding: 0px;
+        }
+        
+        .dashboard-logo img {
+            height: 320px;
+            max-width: 400px;
+            object-fit: contain;
+        }
+        
+        h2 {
+            color: #007bff;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .remember-me input {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        .remember-me label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="dashboard-logo">
+            <img src="/logo_rw.png" alt="Royal Wholesale Logo" loading="lazy" width="320" height="320">
+        </div>
+        
+                
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me for 7 days</label>
+            </div>
+            
+            <button type="submit" class="btn">Login</button>
+        </form>
+        
+        <div class="footer">
+            <p>Royal Wholesale Order Management System</p>
+            <p style="font-size: 12px; margin-top: 8px;">© 2024 Royal Wholesale. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script defer>
+        'use strict';
+        
+        // Performance: Cache DOM elements
+        let cachedElements = {};
+        
+        function getElement(id) {
+            if (!cachedElements[id]) {
+                cachedElements[id] = document.getElementById(id);
+            }
+            return cachedElements[id];
+        }
+        
+        // Default credentials (in production, these should be server-side)
+        const DEFAULT_CREDENTIALS = {
+            'admin': 'Royal123!',
+            'manager': 'manager123',
+            'warehouse': 'warehouse123',
+            'employee': 'employee123'
+        };
+        
+        // Check if user is already logged in
+        function checkAuthStatus() {
+            const authData = localStorage.getItem('authData');
+            if (authData) {
+                const data = JSON.parse(authData);
+                const now = new Date().getTime();
+                
+                if (data.expiresAt > now) {
+                    // Valid session found, redirect to main app
+                    window.location.href = 'orders-new.html';
+                    return true;
+                } else {
+                    // Session expired
+                    localStorage.removeItem('authData');
+                }
+            }
+            return false;
+        }
+        
+        // Handle login
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            
+            // Clear previous messages
+            hideMessages();
+            
+            // Validate credentials
+            if (validateCredentials(username, password)) {
+                // Create session
+                const sessionData = {
+                    username: username,
+                    loginTime: new Date().getTime(),
+                    expiresAt: remember ? new Date().getTime() + (7 * 24 * 60 * 60 * 1000) : new Date().getTime() + (24 * 60 * 60 * 1000), // 7 days or 24 hours
+                    remember: remember
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('authData', JSON.stringify(sessionData));
+                
+                // Show success message
+                showSuccess('Login successful! Redirecting...');
+                
+                // Redirect to main app
+                setTimeout(() => {
+                    window.location.href = 'orders-new.html';
+                }, 1000);
+                
+            } else {
+                // Show error
+                showError('Invalid username or password. Please try again.');
+            }
+        }
+        
+        // Validate credentials
+        function validateCredentials(username, password) {
+            // Check against default credentials
+            return DEFAULT_CREDENTIALS[username] === password;
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+        
+        // Hide all messages
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        // Check auth status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuthStatus()) {
+                // Focus on username field
+                document.getElementById('username').focus();
+            }
+        });
+        
+        // Handle Enter key in form fields
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const activeElement = document.activeElement;
+                if (activeElement.id === 'username') {
+                    document.getElementById('password').focus();
+                    event.preventDefault();
+                } else if (activeElement.id === 'password') {
+                    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+                    event.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 API Connection Test</h1>
+    
+    <div id="status" class="status info">
+        Testing API connections...
+    </div>
+    
+    <button onclick="testLocalServer()">🏠 Test Local Server</button>
+    <button onclick="testVercelAPI()">☁️ Test Vercel API</button>
+    <button onclick="testAutoConfig()">🔄 Test Auto Config</button>
+    <button onclick="loadOrders()">📦 Load Orders</button>
+    
+    <div id="results"></div>
+    
+    <script src="/config.js"></script>
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+        
+        function showResults(content) {
+            document.getElementById('results').innerHTML = content;
+        }
+        
+        async function testLocalServer() {
+            updateStatus('Testing local server...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:3005/api/test', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('✅ Local server connected!', 'success');
+                    showResults(`
+                        <h3>Local Server Response:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('❌ Local server not available', 'error');
+                showResults(`
+                    <h3>Local Server Error:</h3>
+                    <pre>${error.message}</pre>
+                    <p>Make sure your local server is running on port 3005</p>
+                `);
+            }
+        }
+        
+        async function testVercelAPI() {
+            updateStatus('Testing Vercel API...', 'info');
+            
+            try {
+                const response = await fetch(window.location.origin + '/api/test');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('✅ Vercel API connected!', 'success');
+                    showResults(`
+                        <h3>Vercel API Response:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('❌ Vercel API not available', 'error');
+                showResults(`
+                    <h3>Vercel API Error:</h3>
+                    <pre>${error.message}</pre>
+                `);
+            }
+        }
+        
+        async function testAutoConfig() {
+            updateStatus('Testing auto configuration...', 'info');
+            
+            try {
+                const apiUrl = await window.API_CONFIG.getApiUrlWithFallback();
+                const response = await fetch(apiUrl + '/test');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus(`✅ Connected using: ${apiUrl}`, 'success');
+                    showResults(`
+                        <h3>Auto Config Results:</h3>
+                        <p><strong>Using API URL:</strong> ${apiUrl}</p>
+                        <p><strong>Environment:</strong> ${window.API_CONFIG.isDevelopment ? 'Development' : 'Production'}</p>
+                        <h4>Response:</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('❌ Auto configuration failed', 'error');
+                showResults(`
+                    <h3>Auto Config Error:</h3>
+                    <pre>${error.message}</pre>
+                `);
+            }
+        }
+        
+        async function loadOrders() {
+            updateStatus('Loading orders...', 'info');
+            
+            try {
+                const apiUrl = await window.API_CONFIG.getApiUrlWithFallback();
+                const response = await fetch(apiUrl + '/orders?pageSize=10');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus(`✅ Loaded ${data.orders?.length || 0} orders!`, 'success');
+                    showResults(`
+                        <h3>Orders Loaded:</h3>
+                        <p><strong>Source:</strong> ${data.fallback ? 'Fallback Data' : 'ShipStation API'}</p>
+                        <p><strong>Total Orders:</strong> ${data.total || 0}</p>
+                        <p><strong>Page:</strong> ${data.page || 1}</p>
+                        <h4>First 3 Orders:</h4>
+                        <pre>${JSON.stringify(data.orders?.slice(0, 3), null, 2)}</pre>
+                    `);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('❌ Failed to load orders', 'error');
+                showResults(`
+                    <h3>Orders Error:</h3>
+                    <pre>${error.message}</pre>
+                `);
+            }
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            updateStatus('Page loaded - Click buttons to test connections', 'info');
+            showResults(`
+                <h3>🔌 Connection Test Tool</h3>
+                <p>This tool helps you test different API connections:</p>
+                <ul>
+                    <li><strong>Local Server:</strong> Tests connection to your local Node.js server (port 3005)</li>
+                    <li><strong>Vercel API:</strong> Tests connection to deployed Vercel functions</li>
+                    <li><strong>Auto Config:</strong> Uses smart configuration to pick the best option</li>
+                    <li><strong>Load Orders:</strong> Actually loads order data from the best available source</li>
+                </ul>
+                <p><strong>Setup:</strong> Make sure your local server is running on port 3005 for best results!</p>
+            `);
+        };
+    </script>
+</body>
+</html>
